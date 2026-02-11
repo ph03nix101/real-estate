@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   Phone,
   Mail,
   Check,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,29 +26,51 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { properties } from "@/data/properties";
-
-const amenities = [
-  "Central Air Conditioning",
-  "Heated Floors",
-  "Smart Home System",
-  "Wine Cellar",
-  "Home Theater",
-  "Infinity Pool",
-  "Private Gym",
-  "Chef's Kitchen",
-  "Outdoor Kitchen",
-  "Fire Pit",
-  "3-Car Garage",
-  "Security System",
-];
+import propertyService, { Property } from "@/services/property.service";
+import { useToast } from "@/hooks/use-toast";
 
 const PropertyDetails = () => {
   const { id } = useParams();
-  const property = properties.find((p) => p.id === id);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      loadProperty();
+    }
+  }, [id]);
+
+  const loadProperty = async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+      const data = await propertyService.getById(id);
+      setProperty(data);
+    } catch (error: any) {
+      toast({
+        title: "Property not found",
+        description: error.message || "Failed to load property",
+        variant: "destructive",
+      });
+      setTimeout(() => navigate("/properties"), 2000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-gold" />
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -64,8 +87,10 @@ const PropertyDetails = () => {
     );
   }
 
-  // Simulate multiple images using the same image
-  const images = [property.image, property.image, property.image, property.image];
+  // Get images from property or use placeholder
+  const images = property.images && property.images.length > 0
+    ? property.images.map(img => propertyService.getImageUrl(img))
+    : ["/placeholder.svg"];
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -74,6 +99,10 @@ const PropertyDetails = () => {
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
+
+  // Format price
+  const priceFormatted = `$${property.price.toLocaleString()}`;
+  const pricePerSqft = Math.round(property.price / property.sqft);
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,70 +167,74 @@ const PropertyDetails = () => {
                 Click to view gallery
               </span>
             </div>
-            {property.badge && (
-              <Badge
-                className={`absolute top-4 left-4 ${
-                  property.badge === "new"
-                    ? "bg-gold text-charcoal"
-                    : "bg-charcoal text-cream"
-                }`}
-              >
-                {property.badge === "new" ? "New Listing" : "Just Sold"}
+            {property.featured && (
+              <Badge className="absolute top-4 left-4 bg-gold text-charcoal">
+                Featured
+              </Badge>
+            )}
+            {property.status === 'sold' && (
+              <Badge className="absolute top-4 left-4 bg-charcoal text-cream">
+                Sold
               </Badge>
             )}
 
             {/* Navigation Arrows */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                prevImage();
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                nextImage();
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </motion.div>
 
           {/* Thumbnail Grid */}
-          <div className="hidden lg:grid grid-rows-3 gap-4">
-            {images.slice(1, 4).map((img, idx) => (
-              <motion.div
-                key={idx}
-                className={`relative rounded-xl overflow-hidden cursor-pointer ${
-                  currentImageIndex === idx + 1
-                    ? "ring-2 ring-gold"
-                    : ""
-                }`}
-                onClick={() => setCurrentImageIndex(idx + 1)}
-                whileHover={{ scale: 1.02 }}
-              >
-                <img
-                  src={img}
-                  alt={`View ${idx + 2}`}
-                  className="w-full h-full object-cover"
-                />
-                {idx === 2 && images.length > 4 && (
-                  <div
-                    className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer"
-                    onClick={() => setIsLightboxOpen(true)}
-                  >
-                    <span className="text-white font-medium">
-                      +{images.length - 4} more
-                    </span>
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="hidden lg:grid grid-rows-3 gap-4">
+              {images.slice(1, 4).map((img, idx) => (
+                <motion.div
+                  key={idx}
+                  className={`relative rounded-xl overflow-hidden cursor-pointer ${currentImageIndex === idx + 1
+                      ? "ring-2 ring-gold"
+                      : ""
+                    }`}
+                  onClick={() => setCurrentImageIndex(idx + 1)}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <img
+                    src={img}
+                    alt={`View ${idx + 2}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {idx === 2 && images.length > 4 && (
+                    <div
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer"
+                      onClick={() => setIsLightboxOpen(true)}
+                    >
+                      <span className="text-white font-medium">
+                        +{images.length - 4} more
+                      </span>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -219,15 +252,15 @@ const PropertyDetails = () => {
                   </h1>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-4 h-4 text-gold" />
-                    <span>{property.location}</span>
+                    <span>{property.city}, {property.state}</span>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-display font-bold text-gold">
-                    {property.priceFormatted}
+                    {priceFormatted}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    ${Math.round(property.price / parseInt(property.sqft.replace(",", ""))).toLocaleString()}/sqft
+                    ${pricePerSqft.toLocaleString()}/sqft
                   </p>
                 </div>
               </div>
@@ -246,7 +279,7 @@ const PropertyDetails = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Square className="w-5 h-5 text-gold" />
-                  <span className="font-medium">{property.sqft}</span>
+                  <span className="font-medium">{property.sqft.toLocaleString()}</span>
                   <span className="text-muted-foreground">Sq Ft</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -271,41 +304,43 @@ const PropertyDetails = () => {
 
               <TabsContent value="overview" className="mt-6">
                 <div className="prose prose-lg max-w-none text-muted-foreground">
-                  <p>
-                    Welcome to {property.title}, an exceptional {property.propertyType} nestled in 
-                    the prestigious {property.city} neighborhood. This stunning {property.sqft} square 
-                    foot residence offers {property.beds} bedrooms and {property.baths} bathrooms, 
-                    perfectly blending luxury living with modern convenience.
-                  </p>
-                  <p>
-                    Built in {property.yearBuilt}, this property showcases sophisticated 
-                    architectural design with premium finishes throughout. The open floor plan 
-                    creates an inviting atmosphere for both intimate gatherings and grand 
-                    entertaining. Floor-to-ceiling windows flood the space with natural light 
-                    while offering breathtaking views.
-                  </p>
-                  <p>
-                    The gourmet chef's kitchen features top-of-the-line appliances, custom 
-                    cabinetry, and an expansive island. The primary suite is a true retreat 
-                    with a spa-inspired bathroom and generous walk-in closets. Additional 
-                    highlights include a home theater, wine cellar, and resort-style outdoor 
-                    living spaces.
-                  </p>
+                  {property.description ? (
+                    <p className="whitespace-pre-wrap">{property.description}</p>
+                  ) : (
+                    <>
+                      <p>
+                        Welcome to {property.title}, an exceptional {property.propertyType} nestled in
+                        the prestigious {property.city} neighborhood. This stunning {property.sqft.toLocaleString()} square
+                        foot residence offers {property.beds} bedrooms and {property.baths} bathrooms,
+                        perfectly blending luxury living with modern convenience.
+                      </p>
+                      <p>
+                        Built in {property.yearBuilt}, this property showcases sophisticated
+                        architectural design with premium finishes throughout. The open floor plan
+                        creates an inviting atmosphere for both intimate gatherings and grand
+                        entertaining.
+                      </p>
+                    </>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="amenities" className="mt-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {amenities.map((amenity, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
-                    >
-                      <Check className="w-4 h-4 text-gold flex-shrink-0" />
-                      <span className="text-sm">{amenity}</span>
-                    </div>
-                  ))}
-                </div>
+                {property.amenities && property.amenities.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {property.amenities.map((amenity, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
+                      >
+                        <Check className="w-4 h-4 text-gold flex-shrink-0" />
+                        <span className="text-sm">{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No amenities listed for this property.</p>
+                )}
               </TabsContent>
 
               <TabsContent value="location" className="mt-6">
@@ -314,6 +349,7 @@ const PropertyDetails = () => {
                     <div className="text-center">
                       <MapPin className="w-12 h-12 mx-auto mb-4 text-gold" />
                       <p className="font-medium">{property.location}</p>
+                      <p className="text-sm">{property.city}, {property.state}</p>
                       <p className="text-sm mt-2">Interactive map coming soon</p>
                     </div>
                   </div>
@@ -331,36 +367,51 @@ const PropertyDetails = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center text-charcoal font-bold text-xl">
-                    JD
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold text-foreground">
-                      James Davidson
+                {property.agent ? (
+                  <>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center text-charcoal font-bold text-xl">
+                        {property.agent.firstName[0]}{property.agent.lastName[0]}
+                      </div>
+                      <div>
+                        <h3 className="font-display font-semibold text-foreground">
+                          {property.agent.firstName} {property.agent.lastName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Property Agent
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      {property.agent.phone && (
+                        <a
+                          href={`tel:${property.agent.phone}`}
+                          className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span>{property.agent.phone}</span>
+                        </a>
+                      )}
+                      <a
+                        href={`mailto:${property.agent.email}`}
+                        className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                        <span>{property.agent.email}</span>
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <div className="mb-6">
+                    <h3 className="font-display font-semibold text-foreground mb-2">
+                      Contact Us
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Luxury Property Specialist
+                      Interested in this property? Send us a message.
                     </p>
                   </div>
-                </div>
-
-                <div className="space-y-3 mb-6">
-                  <a
-                    href="tel:+1234567890"
-                    className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                    <span>(123) 456-7890</span>
-                  </a>
-                  <a
-                    href="mailto:james@luxeterritory.com"
-                    className="flex items-center gap-3 text-muted-foreground hover:text-gold transition-colors"
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span>james@luxeterritory.com</span>
-                  </a>
-                </div>
+                )}
 
                 <form className="space-y-4">
                   <Input placeholder="Your Name" className="bg-background" />
@@ -423,12 +474,23 @@ const PropertyDetails = () => {
               <X className="w-5 h-5" />
             </button>
 
-            <button
-              onClick={prevImage}
-              className="absolute left-4 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
 
             <motion.img
               key={currentImageIndex}
@@ -440,33 +502,27 @@ const PropertyDetails = () => {
               exit={{ opacity: 0, scale: 0.95 }}
             />
 
-            <button
-              onClick={nextImage}
-              className="absolute right-4 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-
             {/* Thumbnail Strip */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-              {images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
-                  className={`w-16 h-12 rounded-md overflow-hidden border-2 transition-colors ${
-                    currentImageIndex === idx
-                      ? "border-gold"
-                      : "border-transparent opacity-60 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt={`Thumb ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    className={`w-16 h-12 rounded-md overflow-hidden border-2 transition-colors ${currentImageIndex === idx
+                        ? "border-gold"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                      }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`Thumb ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
