@@ -1,9 +1,32 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, MapPin, DollarSign, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import heroImage from "@/assets/hero-mansion.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const [location, setLocation] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (location) params.append("location", location);
+    if (priceRange) params.append("price", priceRange);
+    if (propertyType) params.append("type", propertyType);
+
+    navigate(`/properties?${params.toString()}`);
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -60,11 +83,13 @@ const HeroSection = () => {
             {/* Location */}
             <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border/30">
               <MapPin className="w-5 h-5 text-gold" />
-              <div className="flex-1">
-                <label className="text-xs text-muted-foreground block text-left">Location</label>
+              <div className="flex-1 text-left">
+                <label className="text-xs text-muted-foreground block mb-1.5">Location</label>
                 <input
                   type="text"
-                  placeholder="City, neighborhood, or address"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City, neighborhood..."
                   className="w-full bg-transparent text-foreground text-sm focus:outline-none placeholder:text-muted-foreground/70"
                 />
               </div>
@@ -73,35 +98,50 @@ const HeroSection = () => {
             {/* Price Range */}
             <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border/30">
               <DollarSign className="w-5 h-5 text-gold" />
-              <div className="flex-1">
-                <label className="text-xs text-muted-foreground block text-left">Price Range</label>
-                <select className="w-full bg-transparent text-foreground text-sm focus:outline-none appearance-none cursor-pointer">
-                  <option value="">Any Price</option>
-                  <option value="500000-1000000">R500K - R1M</option>
-                  <option value="1000000-2500000">R1M - R2.5M</option>
-                  <option value="2500000-5000000">R2.5M - R5M</option>
-                  <option value="5000000+">R5M+</option>
-                </select>
+              <div className="flex-1 text-left">
+                <label className="text-xs text-muted-foreground block mb-1.5">Price Range</label>
+                <Select value={priceRange} onValueChange={setPriceRange}>
+                  <SelectTrigger className="w-full h-auto p-0 border-none bg-transparent focus:ring-0 text-foreground text-sm shadow-none data-[placeholder]:text-muted-foreground/70">
+                    <SelectValue placeholder="Any Price" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Price</SelectItem>
+                    <SelectItem value="500000-1000000">R500K - R1M</SelectItem>
+                    <SelectItem value="1000000-2500000">R1M - R2.5M</SelectItem>
+                    <SelectItem value="2500000-5000000">R2.5M - R5M</SelectItem>
+                    <SelectItem value="5000000+">R5M+</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             {/* Property Type */}
             <div className="flex-1 flex items-center gap-3 px-4 py-3">
               <Home className="w-5 h-5 text-gold" />
-              <div className="flex-1">
-                <label className="text-xs text-muted-foreground block text-left">Property Type</label>
-                <select className="w-full bg-transparent text-foreground text-sm focus:outline-none appearance-none cursor-pointer">
-                  <option value="">All Types</option>
-                  <option value="house">House</option>
-                  <option value="penthouse">Penthouse</option>
-                  <option value="villa">Villa</option>
-                  <option value="estate">Estate</option>
-                </select>
+              <div className="flex-1 text-left">
+                <label className="text-xs text-muted-foreground block mb-1.5">Property Type</label>
+                <Select value={propertyType} onValueChange={setPropertyType}>
+                  <SelectTrigger className="w-full h-auto p-0 border-none bg-transparent focus:ring-0 text-foreground text-sm shadow-none data-[placeholder]:text-muted-foreground/70">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="house">House</SelectItem>
+                    <SelectItem value="penthouse">Penthouse</SelectItem>
+                    <SelectItem value="villa">Villa</SelectItem>
+                    <SelectItem value="estate">Estate</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             {/* Search Button */}
-            <Button variant="luxury" size="xl" className="md:ml-2 rounded-xl">
+            <Button
+              variant="luxury"
+              size="xl"
+              className="md:ml-2 rounded-xl"
+              onClick={handleSearch}
+            >
               <Search className="w-5 h-5 mr-2" />
               Search
             </Button>

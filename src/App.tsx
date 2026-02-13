@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MainLayout from "@/components/layouts/MainLayout";
 import AgentLayout from "@/components/layouts/AgentLayout";
+import ScrollToAnchor from "@/components/ScrollToAnchor";
 import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
@@ -29,6 +30,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToAnchor />
           <Routes>
             {/* Public Routes - Wrapped in MainLayout */}
             <Route element={<MainLayout />}>

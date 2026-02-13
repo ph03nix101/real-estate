@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Grid3X3, LayoutList, SlidersHorizontal, X, Loader2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,7 @@ import {
 
 const Properties = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -29,8 +30,22 @@ const Properties = () => {
   });
 
   useEffect(() => {
+    // Initialize filters from URL params
+    const typeParam = searchParams.get("type");
+    const priceParam = searchParams.get("price");
+
+    if (typeParam || priceParam) {
+      setFilters(prev => ({
+        ...prev,
+        propertyType: typeParam || "all",
+        priceRange: priceParam || "all",
+      }));
+      // Auto-open filters if search params exist so user sees why results are filtered
+      setShowFilters(true);
+    }
+
     loadProperties();
-  }, []);
+  }, [searchParams]);
 
   const loadProperties = async () => {
     try {
@@ -336,7 +351,7 @@ const Properties = () => {
               </Button>
             </motion.div>
           ) : viewMode === "grid" ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredProperties.map((property, index) => (
                 <PropertyCard
                   key={property.id}

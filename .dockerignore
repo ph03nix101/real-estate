@@ -1,3 +1,4 @@
 node_modules
-real-estate-backend
+dist
 .env
+real-estate-backend

@@ -217,7 +217,7 @@ const PropertyDetails = () => {
             )}
           </motion.div>
 
-          {/* Thumbnail List */}
+          {/* Thumbnail List (Desktop) */}
           {images.length > 1 && (
             <div className="hidden lg:block relative h-full">
               <div className="absolute inset-0 flex flex-col gap-4 overflow-y-auto pr-2 costume-scrollbar">
@@ -226,7 +226,7 @@ const PropertyDetails = () => {
                     key={idx}
                     className={`relative shrink-0 aspect-[16/10] rounded-xl overflow-hidden cursor-pointer ${currentImageIndex === idx
                       ? "ring-2 ring-gold"
-                      : ""
+                      : "ring-1 ring-transparent hover:ring-border"
                       }`}
                     onClick={() => setCurrentImageIndex(idx)}
                     whileHover={{ scale: 1.02 }}
@@ -239,6 +239,26 @@ const PropertyDetails = () => {
                   </motion.div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Thumbnail List (Mobile) */}
+          {images.length > 1 && (
+            <div className="lg:hidden col-span-1 flex gap-3 overflow-x-auto pb-4 snap-x costume-scrollbar">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  className={`relative flex-shrink-0 w-28 aspect-[16/10] rounded-lg overflow-hidden border-2 transition-all snap-start ${currentImageIndex === idx ? "border-gold" : "border-transparent opacity-80"
+                    }`}
+                  onClick={() => setCurrentImageIndex(idx)}
+                >
+                  <img
+                    src={img}
+                    alt={`View ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>

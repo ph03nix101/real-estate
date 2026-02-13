@@ -33,11 +33,29 @@ const Header = () => {
 
   const navLinks = [
     { label: "Properties", href: "/properties" },
-    { label: "Map", href: "/#map" },
+    { label: "Map", href: "/#map" }, // Keeping /#map format, hook will handle it
     { label: "Team", href: "/#team" },
     { label: "Testimonials", href: "/#testimonials" },
     { label: "Contact", href: "/#contact" },
   ];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // If we are on the home page and the link is a hash link for the home page
+    if (location.pathname === '/' && href.startsWith('/#')) {
+      e.preventDefault();
+      const hash = href.replace('/', '');
+
+      // Add a small delay to allow mobile menu to close if open
+      setTimeout(() => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+          // Optionally update URL without reload
+          history.pushState(null, '', hash);
+        }
+      }, 100);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -68,6 +86,7 @@ const Header = () => {
             <Link
               key={link.label}
               to={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
               className={`text-sm font-medium tracking-wide transition-colors duration-300 hover:text-gold ${showSolid ? "text-foreground" : "text-white/90"
                 }`}
             >
@@ -181,7 +200,10 @@ const Header = () => {
                 <Link
                   key={link.label}
                   to={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    handleNavClick(e, link.href);
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="text-foreground text-lg font-medium py-2 border-b border-border/50"
                 >
                   {link.label}
