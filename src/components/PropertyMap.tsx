@@ -41,7 +41,7 @@ const PropertyMap = ({ properties, center, zoom = 4, className = '' }: PropertyM
             if (firstImage.startsWith('http')) {
                 return firstImage;
             }
-            return `http://localhost:5000${firstImage}`;
+            return `${firstImage}`;
         }
         return 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6';
     };

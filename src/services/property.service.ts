@@ -186,7 +186,7 @@ class PropertyService {
      */
     getImageUrl(imagePath: string): string {
         // Remove /api from the URL since static files are served from root
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
         const baseUrl = apiUrl.replace('/api', '');
         return `${baseUrl}${imagePath}`;
     }
