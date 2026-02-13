@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Building2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Building2, ArrowLeft, Loader2, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ImageUpload from '@/components/agent/ImageUpload';
 
@@ -136,30 +136,28 @@ export default function EditProperty() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-real-estate-50 to-white">
-            {/* Header */}
-            <div className="bg-white border-b shadow-sm">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <Building2 className="h-8 w-8 text-real-estate-600" />
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Edit Property</h1>
-                                <p className="text-sm text-gray-600">Update property details</p>
-                            </div>
+        <div className="h-full">
+            {/* Page Header */}
+            <div className="bg-white border-b shadow-sm mb-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                        <Building2 className="h-8 w-8 text-real-estate-600" />
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Edit Property</h1>
+                            <p className="text-sm text-gray-600">Update property details</p>
                         </div>
-                        <Link to="/agent/properties">
-                            <Button variant="outline" size="sm">
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back
-                            </Button>
-                        </Link>
                     </div>
+                    <Link to="/agent/properties">
+                        <Button variant="outline" size="sm">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back
+                        </Button>
+                    </Link>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-5xl mx-auto">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Basic Information */}
                     <Card>
@@ -274,6 +272,100 @@ export default function EditProperty() {
                                     />
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="zipCode">Zip Code</Label>
+                                    <Input
+                                        id="zipCode"
+                                        value={formData.zipCode || ''}
+                                        onChange={(e) => handleChange('zipCode', e.target.value)}
+                                        placeholder="90265"
+                                        disabled={saving}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
+                                <div>
+                                    <Label htmlFor="latitude">Latitude</Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="latitude"
+                                            type="number"
+                                            step="any"
+                                            value={formData.latitude || ''}
+                                            onChange={(e) => handleChange('latitude', e.target.value ? parseFloat(e.target.value) : undefined)}
+                                            placeholder="34.0259"
+                                            disabled={saving}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">Get from Google Maps (right click &gt; coordinates)</p>
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="longitude">Longitude</Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="longitude"
+                                            type="number"
+                                            step="any"
+                                            value={formData.longitude || ''}
+                                            onChange={(e) => handleChange('longitude', e.target.value ? parseFloat(e.target.value) : undefined)}
+                                            placeholder="-118.7798"
+                                            disabled={saving}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-2">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={async () => {
+                                        if (!formData.location || !formData.city || !formData.state) {
+                                            toast({
+                                                title: "Missing address details",
+                                                description: "Please enter address, city, and state first.",
+                                                variant: "destructive"
+                                            });
+                                            return;
+                                        }
+
+                                        const address = `${formData.location}, ${formData.city}, ${formData.state} ${formData.zipCode || ''}`;
+                                        try {
+                                            const { geocodeAddress } = await import('@/utils/geocoding');
+                                            const coords = await geocodeAddress(address);
+
+                                            if (coords) {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    latitude: coords.lat,
+                                                    longitude: coords.lng
+                                                }));
+                                                toast({
+                                                    title: "Coordinates found",
+                                                    description: `Lat: ${coords.lat}, Lng: ${coords.lng}`,
+                                                });
+                                            } else {
+                                                throw new Error("Location not found");
+                                            }
+                                        } catch (error) {
+                                            toast({
+                                                title: "Geocoding failed",
+                                                description: "Could not find coordinates. Please enter manually.",
+                                                variant: "destructive"
+                                            });
+                                        }
+                                    }}
+                                    disabled={saving}
+                                >
+                                    <MapPin className="w-4 h-4 mr-2" />
+                                    Auto-Fill Coordinates
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -337,8 +429,8 @@ export default function EditProperty() {
                                     />
                                 </div>
 
-                                <div>
-                                    <Label htmlFor="sqft">Square Feet *</Label>
+                                <div className="space-y-2">
+                                    <Label htmlFor="sqft">Area (m²) *</Label>
                                     <Input
                                         id="sqft"
                                         type="number"

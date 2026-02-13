@@ -5,7 +5,7 @@ import propertyService, { Property } from '@/services/property.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, PlusCircle, Home, LogOut, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, Pencil, Trash2, Eye, MapPin, Bed, Bath, Square, Building2, PlusCircle, Edit } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
 export default function MyProperties() {
@@ -67,32 +67,16 @@ export default function MyProperties() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-real-estate-50 to-white">
-            {/* Header */}
-            <div className="bg-white border-b shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <Building2 className="h-8 w-8 text-real-estate-600" />
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">My Properties</h1>
-                                <p className="text-sm text-gray-600">
-                                    Manage your property listings
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Link to="/agent/dashboard">
-                                <Button variant="outline" size="sm">
-                                    <Home className="w-4 h-4 mr-2" />
-                                    Dashboard
-                                </Button>
-                            </Link>
-                            <Button variant="outline" size="sm" onClick={logout}>
-                                <LogOut className="w-4 h-4 mr-2" />
-                                Logout
-                            </Button>
-                        </div>
+        <div className="h-full">
+            {/* Page Header */}
+            <div className="bg-white border-b shadow-sm mb-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex items-center space-x-4">
+                    <Building2 className="h-8 w-8 text-real-estate-600" />
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">My Properties</h1>
+                        <p className="text-sm text-gray-600">
+                            Manage your property listings
+                        </p>
                     </div>
                 </div>
             </div>
@@ -175,40 +159,43 @@ export default function MyProperties() {
                                 <CardContent>
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-2xl font-bold text-real-estate-600">
-                                                ${property.price.toLocaleString()}
-                                            </span>
+                                            <div className="text-lg font-bold text-real-estate-900">
+                                                R{property.price.toLocaleString()}
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-4 text-sm text-gray-600">
                                             <span>{property.beds} beds</span>
                                             <span>•</span>
                                             <span>{property.baths} baths</span>
                                             <span>•</span>
-                                            <span>{property.sqft} sqft</span>
-                                        </div>
+                                            <div className="flex items-center space-x-1">
+                                                <Square className="h-4 w-4" />
+                                                <span>{property.sqft} m²</span>
+                                            </div>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2 pt-2">
-                                            <Link to={`/property/${property.id}`} className="flex-1">
-                                                <Button variant="outline" size="sm" className="w-full">
-                                                    <Eye className="w-4 h-4 mr-1" />
-                                                    View
+                                            {/* Actions */}
+                                            <div className="flex items-center gap-2 pt-2">
+                                                <Link to={`/property/${property.id}`} className="flex-1">
+                                                    <Button variant="outline" size="sm" className="w-full">
+                                                        <Eye className="w-4 h-4 mr-1" />
+                                                        View
+                                                    </Button>
+                                                </Link>
+                                                <Link to={`/agent/properties/edit/${property.id}`} className="flex-1">
+                                                    <Button variant="outline" size="sm" className="w-full">
+                                                        <Edit className="w-4 h-4 mr-1" />
+                                                        Edit
+                                                    </Button>
+                                                </Link>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleDelete(property.id, property.title)}
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
                                                 </Button>
-                                            </Link>
-                                            <Link to={`/agent/properties/edit/${property.id}`} className="flex-1">
-                                                <Button variant="outline" size="sm" className="w-full">
-                                                    <Edit className="w-4 h-4 mr-1" />
-                                                    Edit
-                                                </Button>
-                                            </Link>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleDelete(property.id, property.title)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>

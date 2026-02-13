@@ -77,10 +77,10 @@ const HeroSection = () => {
                 <label className="text-xs text-muted-foreground block text-left">Price Range</label>
                 <select className="w-full bg-transparent text-foreground text-sm focus:outline-none appearance-none cursor-pointer">
                   <option value="">Any Price</option>
-                  <option value="500000-1000000">$500K - $1M</option>
-                  <option value="1000000-2500000">$1M - $2.5M</option>
-                  <option value="2500000-5000000">$2.5M - $5M</option>
-                  <option value="5000000+">$5M+</option>
+                  <option value="500000-1000000">R500K - R1M</option>
+                  <option value="1000000-2500000">R1M - R2.5M</option>
+                  <option value="2500000-5000000">R2.5M - R5M</option>
+                  <option value="5000000+">R5M+</option>
                 </select>
               </div>
             </div>
@@ -117,7 +117,7 @@ const HeroSection = () => {
         >
           {[
             { value: "500+", label: "Luxury Properties" },
-            { value: "$2B+", label: "Properties Sold" },
+            { value: "R2B+", label: "Properties Sold" },
             { value: "15+", label: "Years Experience" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">

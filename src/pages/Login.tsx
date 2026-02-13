@@ -30,14 +30,9 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-real-estate-100 via-white to-real-estate-50 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-real-estate-100 via-white to-real-estate-50 p-4 pt-24">
             {/* Home button */}
-            <Link to="/" className="absolute top-4 left-4">
-                <Button variant="outline" size="sm">
-                    <Home className="w-4 h-4 mr-2" />
-                    Home
-                </Button>
-            </Link>
+
 
             <Card className="w-full max-w-md shadow-xl">
                 <CardHeader className="space-y-1">

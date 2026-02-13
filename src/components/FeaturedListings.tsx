@@ -1,86 +1,63 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import PropertyCard from "./PropertyCard";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-
-import property1 from "@/assets/property-1.jpg";
-import property2 from "@/assets/property-2.jpg";
-import property3 from "@/assets/property-3.jpg";
-import property4 from "@/assets/property-4.jpg";
-import property5 from "@/assets/property-5.jpg";
-import property6 from "@/assets/property-6.jpg";
-
-const properties = [
-  {
-    id: "1",
-    image: property1,
-    title: "Modern Oceanfront Villa",
-    location: "Miami Beach, FL",
-    price: "$4,850,000",
-    beds: 5,
-    baths: 6,
-    sqft: "6,200",
-    badge: "new" as const,
-  },
-  {
-    id: "2",
-    image: property2,
-    title: "Skyline Penthouse",
-    location: "Manhattan, NY",
-    price: "$8,200,000",
-    beds: 4,
-    baths: 4,
-    sqft: "4,800",
-    badge: null,
-  },
-  {
-    id: "3",
-    image: property3,
-    title: "Mediterranean Estate",
-    location: "Malibu, CA",
-    price: "$12,500,000",
-    beds: 7,
-    baths: 8,
-    sqft: "9,500",
-    badge: "sold" as const,
-  },
-  {
-    id: "4",
-    image: property4,
-    title: "Beachfront Paradise",
-    location: "The Hamptons, NY",
-    price: "$7,900,000",
-    beds: 6,
-    baths: 7,
-    sqft: "7,200",
-    badge: "new" as const,
-  },
-  {
-    id: "5",
-    image: property5,
-    title: "Alpine Luxury Retreat",
-    location: "Aspen, CO",
-    price: "$5,400,000",
-    beds: 5,
-    baths: 5,
-    sqft: "5,800",
-    badge: null,
-  },
-  {
-    id: "6",
-    image: property6,
-    title: "Industrial Chic Loft",
-    location: "Brooklyn, NY",
-    price: "$3,200,000",
-    beds: 3,
-    baths: 3,
-    sqft: "3,500",
-    badge: null,
-  },
-];
+import { ArrowRight, Loader2 } from "lucide-react";
+import propertyService, { Property } from "@/services/property.service";
+import { useToast } from "@/hooks/use-toast";
 
 const FeaturedListings = () => {
+  const { toast } = useToast();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFeaturedProperties();
+  }, []);
+
+  const loadFeaturedProperties = async () => {
+    try {
+      setLoading(true);
+      // Fetch featured properties or first 6 active properties
+      const response = await propertyService.getAll({
+        status: 'active',
+        featured: true
+      });
+
+      // Limit to 6 properties for the homepage
+      setProperties(response.properties.slice(0, 6));
+    } catch (error: any) {
+      console.error('Error loading featured properties:', error);
+      toast({
+        title: 'Error loading properties',
+        description: error.message || 'Failed to load featured properties',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getPropertyImage = (property: Property) => {
+    if (property.images && property.images.length > 0) {
+      return propertyService.getImageUrl(property.images[0]);
+    }
+    return "/placeholder.svg";
+  };
+
+  const getBadge = (property: Property): "new" | "sold" | null => {
+    if (property.status === 'sold') return 'sold';
+
+    // Consider a property "new" if created within last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const createdDate = new Date(property.createdAt);
+
+    if (createdDate > thirtyDaysAgo) return 'new';
+    return null;
+  };
+
   return (
     <section id="properties" className="section-padding bg-cream">
       <div className="container-luxury">
@@ -104,32 +81,62 @@ const FeaturedListings = () => {
           </p>
         </motion.div>
 
-        {/* Properties Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {properties.map((property, index) => (
-            <PropertyCard
-              key={property.title}
-              {...property}
-              delay={index * 0.1}
-            />
-          ))}
-        </div>
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-12 w-12 animate-spin text-gold" />
+          </div>
+        ) : properties.length === 0 ? (
+          /* Empty State */
+          <div className="text-center py-20">
+            <p className="text-muted-foreground text-lg mb-4">
+              No featured properties available at the moment.
+            </p>
+            <Button variant="luxuryOutline" asChild>
+              <Link to="/properties">
+                View All Properties
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Properties Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {properties.map((property, index) => (
+                <PropertyCard
+                  key={property.id}
+                  id={property.id}
+                  image={getPropertyImage(property)}
+                  title={property.title}
+                  location={`${property.city}, ${property.state}`}
+                  price={`R${property.price.toLocaleString()}`}
+                  beds={property.beds}
+                  baths={property.baths}
+                  sqft={property.sqft.toLocaleString()}
+                  badge={getBadge(property)}
+                  delay={index * 0.1}
+                />
+              ))}
+            </div>
 
-        {/* View All Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <Button variant="luxuryOutline" size="lg" asChild>
-            <Link to="/properties">
-              View All Properties
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </Button>
-        </motion.div>
+            {/* View All Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+              className="text-center mt-12"
+            >
+              <Button variant="luxuryOutline" size="lg" asChild>
+                <Link to="/properties">
+                  View All Properties
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
+            </motion.div>
+          </>
+        )}
       </div>
     </section>
   );

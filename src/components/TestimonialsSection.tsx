@@ -9,7 +9,7 @@ const testimonials = [
     name: "Alexandra & Michael Thompson",
     location: "Purchased in Beverly Hills, CA",
     rating: 5,
-    text: "LuxeTerritory exceeded every expectation. Victoria guided us through the entire process with unmatched professionalism. We found our dream estate within weeks, and the negotiation expertise saved us over $200,000.",
+    text: "LuxeTerritory exceeded every expectation. Victoria guided us through the entire process with unmatched professionalism. We found our dream estate within weeks, and the negotiation expertise saved us over R200,000.",
     image: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&h=100&fit=crop",
   },
   {
@@ -140,11 +140,10 @@ const TestimonialsSection = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === currentIndex
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
                         ? "w-8 bg-gold"
                         : "bg-border hover:bg-gold/50"
-                    }`}
+                      }`}
                   />
                 ))}
               </div>

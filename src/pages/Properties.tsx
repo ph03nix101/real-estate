@@ -1,14 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Grid3X3, LayoutList, SlidersHorizontal, X } from "lucide-react";
+import { ArrowLeft, Grid3X3, LayoutList, SlidersHorizontal, X, Loader2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PropertyCard from "@/components/PropertyCard";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+
+import propertyService, { Property } from "@/services/property.service";
+import { useToast } from "@/hooks/use-toast";
 import {
-  properties,
   propertyTypes,
   priceRanges,
   bedroomOptions,
@@ -16,6 +16,9 @@ import {
 } from "@/data/properties";
 
 const Properties = () => {
+  const { toast } = useToast();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -25,7 +28,27 @@ const Properties = () => {
     sort: "featured",
   });
 
-  const filteredProperties = useMemo(() => {
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  const loadProperties = async () => {
+    try {
+      setLoading(true);
+      const response = await propertyService.getAll({ status: 'active' });
+      setProperties(response.properties);
+    } catch (error: any) {
+      toast({
+        title: "Error loading properties",
+        description: error.message || "Failed to load properties",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProperties = (() => {
     let result = [...properties];
 
     // Filter by property type
@@ -56,7 +79,7 @@ const Properties = () => {
         result.sort((a, b) => a.price - b.price);
         break;
       case "newest":
-        result.sort((a, b) => b.yearBuilt - a.yearBuilt);
+        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
       case "beds":
         result.sort((a, b) => b.beds - a.beds);
@@ -68,7 +91,7 @@ const Properties = () => {
     }
 
     return result;
-  }, [filters]);
+  })();
 
   const activeFilterCount = [
     filters.propertyType !== "all",
@@ -85,9 +108,30 @@ const Properties = () => {
     });
   };
 
+  // Get the first image URL or placeholder
+  const getPropertyImage = (property: Property): string => {
+    if (property.images && property.images.length > 0) {
+      return propertyService.getImageUrl(property.images[0]);
+    }
+    return "/placeholder.svg";
+  };
+
+  // Format price
+  const formatPrice = (price: number): string => {
+    return `$${price.toLocaleString()}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-gold" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+
 
       {/* Hero Banner */}
       <section className="pt-24 pb-12 bg-cream">
@@ -297,14 +341,14 @@ const Properties = () => {
                 <PropertyCard
                   key={property.id}
                   id={property.id}
-                  image={property.image}
+                  image={getPropertyImage(property)}
                   title={property.title}
-                  location={property.location}
-                  price={property.priceFormatted}
+                  location={`${property.city}, ${property.state}`}
+                  price={formatPrice(property.price)}
                   beds={property.beds}
                   baths={property.baths}
-                  sqft={property.sqft}
-                  badge={property.badge}
+                  sqft={property.sqft.toLocaleString()}
+                  badge={property.status === 'sold' ? 'sold' : property.featured ? 'new' : null}
                   delay={index * 0.05}
                 />
               ))}
@@ -322,53 +366,56 @@ const Properties = () => {
                   >
                     <div className="md:w-80 lg:w-96 aspect-[4/3] md:aspect-auto overflow-hidden flex-shrink-0">
                       <img
-                        src={property.image}
+                        src={getPropertyImage(property)}
                         alt={property.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     </div>
                     <div className="flex-1 p-6 flex flex-col justify-between">
                       <div>
-                        {property.badge && (
+                        {(property.featured || property.status === 'sold') && (
                           <span
-                            className={
-                              property.badge === "new" ? "badge-new" : "badge-sold"
-                            }
+                            className={property.status === 'sold' ? "badge-sold" : "badge-new"}
                           >
-                            {property.badge === "new" ? "New Construction" : "Just Sold"}
+                            {property.status === 'sold' ? "Sold" : "Featured"}
                           </span>
                         )}
                         <h3 className="text-xl font-semibold text-foreground mt-2 group-hover:text-gold transition-colors">
                           {property.title}
                         </h3>
-                        <p className="text-muted-foreground mt-1">{property.location}</p>
+                        <p className="text-muted-foreground mt-1">{property.city}, {property.state}</p>
                         <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                           <span>{property.beds} Beds</span>
                           <span>•</span>
                           <span>{property.baths} Baths</span>
                           <span>•</span>
-                          <span>{property.sqft} sq ft</span>
+                          <div className="flex items-center gap-1">
+                            <Square className="w-4 h-4" />
+                            <span>{property.sqft.toLocaleString()} m²</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-6">
+                          <p className="text-2xl font-bold text-gradient-gold">
+                            {formatPrice(property.price)}
+                          </p>
+                          <Button variant="luxury" size="sm">
+                            View Details
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-6">
-                        <p className="text-2xl font-bold text-gradient-gold">
-                          {property.priceFormatted}
-                        </p>
-                        <Button variant="luxury" size="sm">
-                          View Details
-                        </Button>
-                      </div>
                     </div>
+                    <div className="hidden"></div>
+
                   </motion.div>
                 </Link>
               ))}
             </div>
           )}
         </div>
-      </section>
+      </section >
 
-      <Footer />
-    </div>
+
+    </div >
   );
 };
 

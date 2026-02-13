@@ -11,15 +11,16 @@ import StickyContact from "@/components/StickyContact";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <Header />
-      <HeroSection />
-      <FeaturedListings />
-      <MapSection />
-      <TeamSection />
-      <TestimonialsSection />
-      <ValueHomeSection />
-      <Footer />
-      <StickyContact />
+      <div className="min-h-screen">
+        <HeroSection />
+        <FeaturedListings />
+        <MapSection />
+        <TeamSection />
+        <TeamSection />
+        <TestimonialsSection />
+        <ValueHomeSection />
+        <StickyContact />
+      </div>
     </div>
   );
 };

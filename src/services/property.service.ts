@@ -19,6 +19,11 @@ export interface Property {
     amenities: string[];
     createdAt: string;
     updatedAt: string;
+    // Geocoding fields for Google Maps
+    latitude?: number;
+    longitude?: number;
+    address?: string;
+    zipCode?: string;
     agent?: {
         id: string;
         firstName: string;
@@ -57,6 +62,11 @@ export interface PropertyFormData {
     status?: 'draft' | 'active' | 'pending' | 'sold';
     featured?: boolean;
     amenities?: string[];
+    // Geocoding fields
+    latitude?: number;
+    longitude?: number;
+    address?: string;
+    zipCode?: string;
 }
 
 export interface PropertiesResponse {

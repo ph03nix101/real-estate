@@ -24,15 +24,21 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+
+import InquiryForm from "@/components/InquiryForm";
+import AppointmentBookingForm from "@/components/AppointmentBookingForm";
 import propertyService, { Property } from "@/services/property.service";
 import { useToast } from "@/hooks/use-toast";
+import PropertyMap from "@/components/PropertyMap";
+import GoogleMapsProvider from "@/components/GoogleMapsProvider";
+import { useAuth } from "@/contexts/AuthContext";
+import { Pencil } from 'lucide-react';
 
 const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -101,12 +107,12 @@ const PropertyDetails = () => {
   };
 
   // Format price
-  const priceFormatted = `$${property.price.toLocaleString()}`;
+  const priceFormatted = `R${property.price.toLocaleString()}`;
   const pricePerSqft = Math.round(property.price / property.sqft);
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+
 
       {/* Breadcrumb */}
       <div className="pt-24 pb-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -133,6 +139,14 @@ const PropertyDetails = () => {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
+            {user && property.agent && user.id === property.agent.id && (
+              <Link to={`/agent/properties/edit/${property.id}`}>
+                <Button variant="outline" className="gap-2 text-real-estate-600 border-real-estate-200 hover:bg-real-estate-50">
+                  <Pencil className="w-4 h-4" />
+                  Edit Property
+                </Button>
+              </Link>
+            )}
             <Button
               variant="outline"
               size="icon"
@@ -203,36 +217,28 @@ const PropertyDetails = () => {
             )}
           </motion.div>
 
-          {/* Thumbnail Grid */}
+          {/* Thumbnail List */}
           {images.length > 1 && (
-            <div className="hidden lg:grid grid-rows-3 gap-4">
-              {images.slice(1, 4).map((img, idx) => (
-                <motion.div
-                  key={idx}
-                  className={`relative rounded-xl overflow-hidden cursor-pointer ${currentImageIndex === idx + 1
+            <div className="hidden lg:block relative h-full">
+              <div className="absolute inset-0 flex flex-col gap-4 overflow-y-auto pr-2 costume-scrollbar">
+                {images.map((img, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={`relative shrink-0 aspect-[16/10] rounded-xl overflow-hidden cursor-pointer ${currentImageIndex === idx
                       ? "ring-2 ring-gold"
                       : ""
-                    }`}
-                  onClick={() => setCurrentImageIndex(idx + 1)}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <img
-                    src={img}
-                    alt={`View ${idx + 2}`}
-                    className="w-full h-full object-cover"
-                  />
-                  {idx === 2 && images.length > 4 && (
-                    <div
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer"
-                      onClick={() => setIsLightboxOpen(true)}
-                    >
-                      <span className="text-white font-medium">
-                        +{images.length - 4} more
-                      </span>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
+                      }`}
+                    onClick={() => setCurrentImageIndex(idx)}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <img
+                      src={img}
+                      alt={`View ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -240,9 +246,9 @@ const PropertyDetails = () => {
 
       {/* Property Details */}
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-8">
             {/* Header */}
             <div>
               <div className="flex items-start justify-between mb-4">
@@ -260,7 +266,7 @@ const PropertyDetails = () => {
                     {priceFormatted}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    ${pricePerSqft.toLocaleString()}/sqft
+                    R{pricePerSqft.toLocaleString()}/m²
                   </p>
                 </div>
               </div>
@@ -280,7 +286,7 @@ const PropertyDetails = () => {
                 <div className="flex items-center gap-2">
                   <Square className="w-5 h-5 text-gold" />
                   <span className="font-medium">{property.sqft.toLocaleString()}</span>
-                  <span className="text-muted-foreground">Sq Ft</span>
+                  <span className="text-muted-foreground">m²</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gold" />
@@ -310,8 +316,8 @@ const PropertyDetails = () => {
                     <>
                       <p>
                         Welcome to {property.title}, an exceptional {property.propertyType} nestled in
-                        the prestigious {property.city} neighborhood. This stunning {property.sqft.toLocaleString()} square
-                        foot residence offers {property.beds} bedrooms and {property.baths} bathrooms,
+                        the prestigious {property.city} neighborhood. This stunning {property.sqft.toLocaleString()} m²
+                        residence offers {property.beds} bedrooms and {property.baths} bathrooms,
                         perfectly blending luxury living with modern convenience.
                       </p>
                       <p>
@@ -344,15 +350,26 @@ const PropertyDetails = () => {
               </TabsContent>
 
               <TabsContent value="location" className="mt-6">
-                <div className="aspect-[16/9] rounded-xl overflow-hidden bg-muted">
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <MapPin className="w-12 h-12 mx-auto mb-4 text-gold" />
-                      <p className="font-medium">{property.location}</p>
-                      <p className="text-sm">{property.city}, {property.state}</p>
-                      <p className="text-sm mt-2">Interactive map coming soon</p>
+                <div className="aspect-[16/9] rounded-xl overflow-hidden bg-muted relative shadow-lg border border-border/50">
+                  {property.latitude && property.longitude ? (
+                    <GoogleMapsProvider>
+                      <PropertyMap
+                        properties={[property]}
+                        zoom={15}
+                        className="w-full h-full"
+                        center={{ lat: property.latitude, lng: property.longitude }}
+                      />
+                    </GoogleMapsProvider>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/30">
+                      <div className="text-center">
+                        <MapPin className="w-12 h-12 mx-auto mb-4 text-gold" />
+                        <p className="font-medium">{property.location}</p>
+                        <p className="text-sm">{property.city}, {property.state}</p>
+                        <p className="text-sm mt-2 text-muted-foreground/70">Map location not available</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
@@ -413,45 +430,27 @@ const PropertyDetails = () => {
                   </div>
                 )}
 
-                <form className="space-y-4">
-                  <Input placeholder="Your Name" className="bg-background" />
-                  <Input
-                    type="email"
-                    placeholder="Email Address"
-                    className="bg-background"
-                  />
-                  <Input
-                    type="tel"
-                    placeholder="Phone Number"
-                    className="bg-background"
-                  />
-                  <Textarea
-                    placeholder={`I'm interested in ${property.title}...`}
-                    rows={4}
-                    className="bg-background resize-none"
-                  />
-                  <Button variant="luxury" className="w-full">
-                    Request Information
-                  </Button>
-                </form>
-              </motion.div>
+                {/* Inquiry & Appointment Tabs */}
+                <Tabs defaultValue="inquiry" className="w-full">
+                  <TabsList className="w-full">
+                    <TabsTrigger value="inquiry" className="flex-1">Send Inquiry</TabsTrigger>
+                    <TabsTrigger value="appointment" className="flex-1">Book Viewing</TabsTrigger>
+                  </TabsList>
 
-              {/* Schedule Tour */}
-              <motion.div
-                className="bg-charcoal rounded-xl p-6 text-cream"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <h3 className="font-display font-semibold text-lg mb-2">
-                  Schedule a Private Tour
-                </h3>
-                <p className="text-cream/70 text-sm mb-4">
-                  Experience this exceptional property in person with a private showing.
-                </p>
-                <Button variant="luxuryOutline" className="w-full">
-                  Book a Tour
-                </Button>
+                  <TabsContent value="inquiry" className="mt-4">
+                    <InquiryForm
+                      propertyId={property.id}
+                      propertyTitle={property.title}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="appointment" className="mt-4">
+                    <AppointmentBookingForm
+                      propertyId={property.id}
+                      propertyTitle={property.title}
+                    />
+                  </TabsContent>
+                </Tabs>
               </motion.div>
             </div>
           </div>
@@ -510,8 +509,8 @@ const PropertyDetails = () => {
                     key={idx}
                     onClick={() => setCurrentImageIndex(idx)}
                     className={`w-16 h-12 rounded-md overflow-hidden border-2 transition-colors ${currentImageIndex === idx
-                        ? "border-gold"
-                        : "border-transparent opacity-60 hover:opacity-100"
+                      ? "border-gold"
+                      : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                   >
                     <img
@@ -527,7 +526,7 @@ const PropertyDetails = () => {
         )}
       </AnimatePresence>
 
-      <Footer />
+
     </div>
   );
 };

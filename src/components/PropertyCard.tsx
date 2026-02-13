@@ -49,12 +49,11 @@ const PropertyCard = ({
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
-          
+
           {/* Overlay on hover */}
           <div
-            className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 ${
-              isHovered ? "opacity-100" : "opacity-60"
-            }`}
+            className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-60"
+              }`}
           />
 
           {/* Badge */}
@@ -84,7 +83,7 @@ const PropertyCard = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <Maximize className="w-4 h-4" />
-                <span className="text-sm">{sqft} sq ft</span>
+                <span className="text-sm">{sqft} m²</span>
               </div>
             </div>
             <Button variant="luxury" size="sm" className="w-full">

@@ -8,9 +8,9 @@ const agents = [
     id: 1,
     name: "Victoria Sterling",
     role: "Founder & Lead Agent",
-    bio: "With over 20 years in luxury real estate, Victoria has closed over $500M in transactions. Her expertise in high-end properties is unmatched.",
+    bio: "With over 20 years in luxury real estate, Victoria has closed over R500M in transactions. Her expertise in high-end properties is unmatched.",
     image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=500&fit=crop",
-    sales: "$180M+",
+    sales: "R180M+",
     properties: "45+",
   },
   {
@@ -19,7 +19,7 @@ const agents = [
     role: "Senior Property Specialist",
     bio: "Marcus brings architectural expertise to every transaction, helping clients understand the true value and potential of each property.",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop",
-    sales: "$120M+",
+    sales: "R120M+",
     properties: "38+",
   },
   {
@@ -28,7 +28,7 @@ const agents = [
     role: "International Sales Director",
     bio: "Fluent in five languages, Isabella connects global buyers with exceptional properties across three continents.",
     image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=500&fit=crop",
-    sales: "$95M+",
+    sales: "R95M+",
     properties: "32+",
   },
   {
@@ -37,7 +37,7 @@ const agents = [
     role: "Estate Specialist",
     bio: "James specializes in historic estates and waterfront properties, with a deep network of exclusive listings.",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop",
-    sales: "$88M+",
+    sales: "R88M+",
     properties: "28+",
   },
 ];
@@ -46,8 +46,8 @@ const TeamSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
-  const slidesPerView = typeof window !== 'undefined' && window.innerWidth >= 1024 ? 3 : 
-                        typeof window !== 'undefined' && window.innerWidth >= 768 ? 2 : 1;
+  const slidesPerView = typeof window !== 'undefined' && window.innerWidth >= 1024 ? 3 :
+    typeof window !== 'undefined' && window.innerWidth >= 768 ? 2 : 1;
 
   const maxIndex = Math.max(0, agents.length - slidesPerView);
 
@@ -133,7 +133,7 @@ const TeamSection = () => {
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      
+
                       {/* Social Links */}
                       <div className="absolute bottom-4 left-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                         <Button variant="glass" size="icon" className="rounded-full">
@@ -159,7 +159,7 @@ const TeamSection = () => {
                       <p className="text-muted-foreground text-sm mt-3 line-clamp-2">
                         {agent.bio}
                       </p>
-                      
+
                       {/* Stats */}
                       <div className="flex gap-6 mt-4 pt-4 border-t border-border">
                         <div>
