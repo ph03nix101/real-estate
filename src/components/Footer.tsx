@@ -105,27 +105,27 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" />
                 <span className="text-background/60 text-sm">
-                  123 Luxury Avenue, Suite 500
+                  702 Meerlust Villas Equestria
                   <br />
-                  Beverly Hills, CA 90210
+                  Pretoria, 0184
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-gold flex-shrink-0" />
                 <a
-                  href="tel:+1234567890"
+                  href="tel:+27763845895"
                   className="text-background/60 hover:text-gold transition-colors text-sm"
                 >
-                  (123) 456-7890
+                  +27 76 384 5895
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-gold flex-shrink-0" />
                 <a
-                  href="mailto:info@luxeterritory.com"
+                  href="muziricasper@gmail.com"
                   className="text-background/60 hover:text-gold transition-colors text-sm"
                 >
-                  info@luxeterritory.com
+                  muziricasper@gmail.com
                 </a>
               </li>
             </ul>
